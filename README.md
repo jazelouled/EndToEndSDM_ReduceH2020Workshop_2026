@@ -1,9 +1,9 @@
-# End-to-End SDM Workshop (ECS 2026)
+# End-to-End SDM Workshop (REDUCE H2020 Project, 2026)
 
 This repository contains all the material needed to run an end-to-end Species Distribution Modelling (SDM) workflow, from raw tracking data to habitat suitability predictions.
 
 <p align="center">
-  <img src="workshopLogo.png" width="50%">
+  <img src="logoWorkshop.png" width="50%">
 </p>
 
 The workshop guides participants through a complete pipeline:
