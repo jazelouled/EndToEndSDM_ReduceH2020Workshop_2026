@@ -56,6 +56,8 @@ Place the file inside:
 
 #### Environmental data
 
+In case your download fails, you can use this link, which provides the same data that you would have downloaded from Copernicus. 
+
 Download from:
 
 https://www.dropbox.com/scl/fo/m6f6znub911rg6dixxnzm/AMOo3HL2sxs23Zm6g5YjNEA?rlkey=towzqx8s5o90amo2w2f3l9dev&dl=0
@@ -66,6 +68,17 @@ Place the file inside:
 00inputOutput/00input/00rawData/00enviro/01CMEMS
 ```
 
+#### SSM data
+
+The SSM script is computationally intensive and your computer might not be able to run it. In this case, and to be able to follow the subsequent steps, download the folder from this link:
+
+https://www.dropbox.com/scl/fo/yk7u4gmf0hf8unbao4v5b/AJRMJD9pZlprMgBT0YbDtQY?rlkey=maai7eo35mv8t2pl7cbjpgocb&dl=0
+
+Place the file inside:
+
+```
+00inputOutput/00input/01processedData/01tracking/04L2_ssm_behaviour
+```
 
 
 
