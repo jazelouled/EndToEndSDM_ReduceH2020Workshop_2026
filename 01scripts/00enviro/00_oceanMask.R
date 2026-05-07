@@ -3,12 +3,11 @@
 # 00_oceanMask.R
 #
 # PURPOSE:
-# Create an ocean mask from the GEBCO bathymetry NetCDF,
-# cropped to the study area defined in bbox_env.txt
+# Create an ocean mask from the cropped bathymetry raster
+# bathymetry_wmed.tif
 #
 # INPUT:
-# - 00inputOutput/00input/00rawData/00enviro/00StaticLayers/GEBCO_2014_2D.nc
-# - 00inputOutput/00input/00rawData/01tracking/00auxiliaryFiles/bbox_env.txt
+# - 00inputOutput/00input/00rawData/00enviro/00StaticLayers/bathymetry_wmed.tif
 #
 # OUTPUT:
 # - 00inputOutput/00input/00rawData/00enviro/oceanmask.tif
@@ -29,14 +28,9 @@ message("Starting ocean mask creation...")
 # 1. PATHS
 # ------------------------------------------------------------
 
-bathy_nc <- here(
+bathy_file <- here(
   "00inputOutput", "00input", "00rawData", "00enviro",
-  "00StaticLayers", "GEBCO_2014_2D.nc"
-)
-
-bbox_file <- here(
-  "00inputOutput", "00input", "00rawData", "01tracking",
-  "00auxiliaryFiles", "bbox_env.txt"
+  "00StaticLayers", "bathymetry_wmed.tif"
 )
 
 out_dir <- here(
@@ -47,47 +41,15 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 oceanmask_out <- file.path(out_dir, "oceanmask.tif")
 
-if (!file.exists(bathy_nc)) {
-  stop("Bathymetry NetCDF not found: ", bathy_nc)
-}
-
-if (!file.exists(bbox_file)) {
-  stop("bbox_env.txt not found: ", bbox_file)
+if (!file.exists(bathy_file)) {
+  stop("Bathymetry raster not found: ", bathy_file)
 }
 
 # ------------------------------------------------------------
-# 2. READ BBOX
-# Expected format:
-# MIN_LON=...
-# MAX_LON=...
-# MIN_LAT=...
-# MAX_LAT=...
+# 2. READ BATHYMETRY
 # ------------------------------------------------------------
 
-bbox_lines <- readLines(bbox_file)
-
-get_bbox_value <- function(prefix, x) {
-  line <- x[grepl(paste0("^", prefix, "="), x)]
-  if (length(line) != 1) {
-    stop("Could not find unique entry for ", prefix, " in ", bbox_file)
-  }
-  as.numeric(sub(paste0("^", prefix, "="), "", line))
-}
-
-min_lon <- get_bbox_value("MIN_LON", bbox_lines)
-max_lon <- get_bbox_value("MAX_LON", bbox_lines)
-min_lat <- get_bbox_value("MIN_LAT", bbox_lines)
-max_lat <- get_bbox_value("MAX_LAT", bbox_lines)
-
-message("Using bbox:")
-message("  LON: ", min_lon, " to ", max_lon)
-message("  LAT: ", min_lat, " to ", max_lat)
-
-# ------------------------------------------------------------
-# 3. READ GEBCO
-# ------------------------------------------------------------
-
-bathy <- rast(bathy_nc)
+bathy <- rast(bathy_file)
 
 if (nlyr(bathy) > 1) {
   bathy <- bathy[[1]]
@@ -95,35 +57,23 @@ if (nlyr(bathy) > 1) {
 
 names(bathy) <- "bathymetry"
 
-# ------------------------------------------------------------
-# 4. CROP TO STUDY AREA
-# ------------------------------------------------------------
+vals_bathy <- values(bathy)
 
-target_ext <- ext(min_lon, max_lon, min_lat, max_lat)
-
-bathy_crop <- crop(bathy, target_ext)
-
-if (is.null(bathy_crop)) {
-  stop("Crop returned NULL")
-}
-
-vals_crop <- values(bathy_crop)
-
-if (length(vals_crop) == 0 || all(is.na(vals_crop))) {
-  stop("Cropped bathymetry has no valid values")
+if (length(vals_bathy) == 0 || all(is.na(vals_bathy))) {
+  stop("Bathymetry raster has no valid values")
 }
 
 # ------------------------------------------------------------
-# 5. CREATE OCEAN MASK
+# 3. CREATE OCEAN MASK
 # Ocean = bathymetry < 0
 # Land  = bathymetry >= 0 or NA
 # ------------------------------------------------------------
 
-oceanmask <- ifel(!is.na(bathy_crop) & bathy_crop < 0, 1, 0)
+oceanmask <- ifel(!is.na(bathy) & bathy < 0, 1, 0)
 names(oceanmask) <- "oceanmask"
 
 # ------------------------------------------------------------
-# 6. SAVE
+# 4. SAVE
 # ------------------------------------------------------------
 
 writeRaster(
@@ -136,7 +86,7 @@ message("Ocean mask saved at:")
 message("  ", oceanmask_out)
 
 # ------------------------------------------------------------
-# 7. FINAL MESSAGE
+# 5. FINAL MESSAGE
 # ------------------------------------------------------------
 
 message("====================================")
